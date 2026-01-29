@@ -5,6 +5,7 @@ import com.nuvio.tv.data.remote.dto.MetaLinkDto
 import com.nuvio.tv.data.remote.dto.VideoDto
 import com.nuvio.tv.domain.model.ContentType
 import com.nuvio.tv.domain.model.Meta
+import com.nuvio.tv.domain.model.MetaCastMember
 import com.nuvio.tv.domain.model.MetaLink
 import com.nuvio.tv.domain.model.PosterShape
 import com.nuvio.tv.domain.model.Video
@@ -23,14 +24,39 @@ fun MetaDto.toDomain(): Meta {
         imdbRating = imdbRating?.toFloatOrNull(),
         genres = genres ?: emptyList(),
         runtime = runtime,
-        director = director ?: emptyList(),
-        cast = cast ?: emptyList(),
+        director = coerceStringList(director),
+        cast = coerceStringList(cast),
+        castMembers = appExtras?.cast
+            .orEmpty()
+            .mapNotNull { castMember ->
+                val name = castMember.name.trim()
+                if (name.isBlank()) return@mapNotNull null
+                MetaCastMember(
+                    name = name,
+                    character = castMember.character?.takeIf { it.isNotBlank() },
+                    photo = castMember.photo?.takeIf { it.isNotBlank() }
+                )
+            },
         videos = videos?.map { it.toDomain() } ?: emptyList(),
         country = country,
         awards = awards,
         language = language,
         links = links?.mapNotNull { it.toDomain() } ?: emptyList()
     )
+}
+
+private fun coerceStringList(value: Any?): List<String> {
+    return when (value) {
+        null -> emptyList()
+        is String -> listOf(value)
+        is List<*> -> value.filterIsInstance<String>()
+        is Map<*, *> -> {
+            // Some addons may return an object; try a couple common keys.
+            val name = value["name"] as? String
+            if (!name.isNullOrBlank()) listOf(name) else emptyList()
+        }
+        else -> emptyList()
+    }
 }
 
 fun VideoDto.toDomain(): Video {

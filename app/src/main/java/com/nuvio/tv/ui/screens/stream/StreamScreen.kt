@@ -8,6 +8,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -29,6 +30,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,6 +50,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.tv.foundation.lazy.list.TvLazyColumn
 import androidx.tv.foundation.lazy.list.TvLazyRow
 import androidx.tv.foundation.lazy.list.items
+import androidx.tv.foundation.lazy.list.itemsIndexed
 import androidx.tv.material3.Border
 import androidx.tv.material3.Card
 import androidx.tv.material3.CardDefaults
@@ -289,6 +292,11 @@ private fun RightStreamSection(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var enter by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        enter = true
+    }
+
     Column(
         modifier = modifier
             .padding(top = 48.dp, end = 48.dp, bottom = 48.dp)
@@ -308,32 +316,42 @@ private fun RightStreamSection(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Content area
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .clip(RoundedCornerShape(16.dp))
-                .background(NuvioColors.BackgroundCard.copy(alpha = 0.5f)),
-            contentAlignment = Alignment.Center
+        AnimatedVisibility(
+            visible = enter,
+            enter = fadeIn(animationSpec = tween(260)) +
+                slideInHorizontally(
+                    animationSpec = tween(260),
+                    initialOffsetX = { fullWidth -> (fullWidth * 0.06f).toInt() }
+                ),
+            exit = fadeOut(animationSpec = tween(120))
         ) {
-            when {
-                isLoading -> {
-                    LoadingState()
-                }
-                error != null -> {
-                    ErrorState(
-                        message = error,
-                        onRetry = onRetry
-                    )
-                }
-                streams.isEmpty() -> {
-                    EmptyState()
-                }
-                else -> {
-                    StreamsList(
-                        streams = streams,
-                        onStreamSelected = onStreamSelected
-                    )
+            // Content area
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(NuvioColors.BackgroundCard.copy(alpha = 0.5f)),
+                contentAlignment = Alignment.Center
+            ) {
+                when {
+                    isLoading -> {
+                        LoadingState()
+                    }
+                    error != null -> {
+                        ErrorState(
+                            message = error,
+                            onRetry = onRetry
+                        )
+                    }
+                    streams.isEmpty() -> {
+                        EmptyState()
+                    }
+                    else -> {
+                        StreamsList(
+                            streams = streams,
+                            onStreamSelected = onStreamSelected
+                        )
+                    }
                 }
             }
         }
@@ -382,7 +400,13 @@ private fun AddonChip(
     FilterChip(
         selected = isSelected,
         onClick = onClick,
-        modifier = Modifier.onFocusChanged { isFocused = it.isFocused },
+        modifier = Modifier.onFocusChanged {
+            val nowFocused = it.isFocused
+            isFocused = nowFocused
+            if (nowFocused && !isSelected) {
+                onClick()
+            }
+        },
         colors = FilterChipDefaults.colors(
             containerColor = NuvioColors.BackgroundCard,
             focusedContainerColor = NuvioColors.Primary,
@@ -524,7 +548,9 @@ private fun StreamsList(
         verticalArrangement = Arrangement.spacedBy(12.dp),
         contentPadding = PaddingValues(vertical = 8.dp)
     ) {
-        items(streams, key = { "${it.addonName}_${it.url ?: it.infoHash ?: it.ytId}" }) { stream ->
+        itemsIndexed(streams, key = { index, stream -> 
+            "${stream.addonName}_${stream.url ?: stream.infoHash ?: stream.ytId ?: "unknown"}_$index"
+        }) { _, stream ->
             StreamCard(
                 stream = stream,
                 onClick = { onStreamSelected(stream) }
@@ -592,9 +618,7 @@ private fun StreamCard(
                 Text(
                     text = stream.getDisplayName(),
                     style = MaterialTheme.typography.titleMedium,
-                    color = NuvioColors.TextPrimary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    color = NuvioColors.TextPrimary
                 )
 
                 stream.getDisplayDescription()?.let { description ->
@@ -602,9 +626,7 @@ private fun StreamCard(
                         Text(
                             text = description,
                             style = MaterialTheme.typography.bodySmall,
-                            color = NuvioTheme.extendedColors.textSecondary,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            color = NuvioTheme.extendedColors.textSecondary
                         )
                     }
                 }

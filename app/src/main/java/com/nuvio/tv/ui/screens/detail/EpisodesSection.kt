@@ -69,7 +69,13 @@ fun SeasonTabs(
 
             Card(
                 onClick = { onSeasonSelected(season) },
-                modifier = Modifier.onFocusChanged { isFocused = it.isFocused },
+                modifier = Modifier.onFocusChanged {
+                    val nowFocused = it.isFocused
+                    isFocused = nowFocused
+                    if (nowFocused && !isSelected) {
+                        onSeasonSelected(season)
+                    }
+                },
                 shape = CardDefaults.shape(
                     shape = RoundedCornerShape(20.dp)
                 ),

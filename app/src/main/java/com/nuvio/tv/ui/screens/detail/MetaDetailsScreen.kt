@@ -28,6 +28,7 @@ import androidx.tv.material3.ExperimentalTvMaterial3Api
 import coil.compose.AsyncImage
 import com.nuvio.tv.domain.model.ContentType
 import com.nuvio.tv.domain.model.Meta
+import com.nuvio.tv.domain.model.MetaCastMember
 import com.nuvio.tv.domain.model.Video
 import com.nuvio.tv.ui.components.ErrorState
 import com.nuvio.tv.ui.components.LoadingIndicator
@@ -210,8 +211,7 @@ private fun MetaDetailsContent(
         // Single scrollable column with hero + content
         TvLazyColumn(
             modifier = Modifier.fillMaxSize(),
-            state = listState,
-            contentPadding = PaddingValues(bottom = 140.dp)
+            state = listState
         ) {
             // Hero as first item in the lazy column
             item {
@@ -247,9 +247,15 @@ private fun MetaDetailsContent(
             }
 
             // Cast section below episodes
-            if (meta.cast.isNotEmpty()) {
+                val castMembersToShow = if (meta.castMembers.isNotEmpty()) {
+                    meta.castMembers
+                } else {
+                    meta.cast.map { name -> MetaCastMember(name = name) }
+                }
+
+                if (castMembersToShow.isNotEmpty()) {
                 item {
-                    CastSection(cast = meta.cast)
+                        CastSection(cast = castMembersToShow)
                 }
             }
         }

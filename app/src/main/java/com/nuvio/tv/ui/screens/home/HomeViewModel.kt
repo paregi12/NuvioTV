@@ -91,7 +91,8 @@ class HomeViewModel @Inject constructor(
                 catalogId = catalog.id,
                 catalogName = catalog.name,
                 type = catalog.type.toApiString(),
-                skip = 0
+                skip = 0,
+                extraArgs = emptyMap()
             ).collect { result ->
                 when (result) {
                     is NetworkResult.Success -> {
@@ -133,7 +134,8 @@ class HomeViewModel @Inject constructor(
                 catalogId = catalogId,
                 catalogName = currentRow.catalogName,
                 type = currentRow.type.toApiString(),
-                skip = nextSkip
+                skip = nextSkip,
+                extraArgs = emptyMap()
             ).collect { result ->
                 when (result) {
                     is NetworkResult.Success -> {

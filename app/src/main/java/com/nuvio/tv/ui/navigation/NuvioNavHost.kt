@@ -26,8 +26,8 @@ fun NuvioNavHost(
     ) {
         composable(Screen.Home.route) {
             HomeScreen(
-                onNavigateToDetail = { itemId, itemType ->
-                    navController.navigate(Screen.Detail.createRoute(itemId, itemType))
+                onNavigateToDetail = { itemId, itemType, addonBaseUrl ->
+                    navController.navigate(Screen.Detail.createRoute(itemId, itemType, addonBaseUrl))
                 }
             )
         }
@@ -36,7 +36,12 @@ fun NuvioNavHost(
             route = Screen.Detail.route,
             arguments = listOf(
                 navArgument("itemId") { type = NavType.StringType },
-                navArgument("itemType") { type = NavType.StringType }
+                navArgument("itemType") { type = NavType.StringType },
+                navArgument("addonBaseUrl") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
             )
         ) { backStackEntry ->
             MetaDetailsScreen(
@@ -143,7 +148,11 @@ fun NuvioNavHost(
         }
 
         composable(Screen.Search.route) {
-            SearchScreen()
+            SearchScreen(
+                onNavigateToDetail = { itemId, itemType, addonBaseUrl ->
+                    navController.navigate(Screen.Detail.createRoute(itemId, itemType, addonBaseUrl))
+                }
+            )
         }
 
         composable(Screen.Settings.route) {

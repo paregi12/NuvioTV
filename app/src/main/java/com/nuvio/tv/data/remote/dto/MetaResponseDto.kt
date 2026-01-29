@@ -22,13 +22,27 @@ data class MetaDto(
     @Json(name = "imdbRating") val imdbRating: String? = null,
     @Json(name = "genres") val genres: List<String>? = null,
     @Json(name = "runtime") val runtime: String? = null,
-    @Json(name = "director") val director: List<String>? = null,
-    @Json(name = "cast") val cast: List<String>? = null,
+    // Stremio addons are inconsistent here (string vs list). Keep it tolerant.
+    @Json(name = "director") val director: Any? = null,
+    @Json(name = "cast") val cast: Any? = null,
     @Json(name = "videos") val videos: List<VideoDto>? = null,
     @Json(name = "country") val country: String? = null,
     @Json(name = "awards") val awards: String? = null,
     @Json(name = "language") val language: String? = null,
-    @Json(name = "links") val links: List<MetaLinkDto>? = null
+    @Json(name = "links") val links: List<MetaLinkDto>? = null,
+    @Json(name = "app_extras") val appExtras: AppExtrasDto? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class AppExtrasDto(
+    @Json(name = "cast") val cast: List<AppExtrasCastMemberDto>? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class AppExtrasCastMemberDto(
+    @Json(name = "name") val name: String,
+    @Json(name = "character") val character: String? = null,
+    @Json(name = "photo") val photo: String? = null
 )
 
 @JsonClass(generateAdapter = true)

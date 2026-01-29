@@ -13,9 +13,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
@@ -215,6 +218,40 @@ class PluginManager @Inject constructor(
         results.flatten()
             .distinctBy { it.url }
             .take(MAX_RESULT_ITEMS)
+    }
+    
+    /**
+     * Execute all enabled scrapers and emit results as each scraper completes.
+     * Returns a Flow that emits (scraperName, results) pairs.
+     */
+    fun executeScrapersStreaming(
+        tmdbId: String,
+        mediaType: String,
+        season: Int? = null,
+        episode: Int? = null
+    ): Flow<Pair<String, List<LocalScraperResult>>> = channelFlow {
+        val enabledList = enabledScrapers.first()
+            .filter { it.supportsType(mediaType) }
+        
+        if (enabledList.isEmpty() || !dataStore.pluginsEnabled.first()) {
+            return@channelFlow
+        }
+        
+        Log.d(TAG, "Streaming execution of ${enabledList.size} scrapers for $mediaType:$tmdbId")
+        
+        // Launch all scrapers concurrently within the channelFlow scope
+        enabledList.forEach { scraper ->
+            launch {
+                try {
+                    val results = executeScraperWithSingleFlight(scraper, tmdbId, mediaType, season, episode)
+                    if (results.isNotEmpty()) {
+                        send(scraper.name to results)
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Scraper ${scraper.name} failed in streaming: ${e.message}")
+                }
+            }
+        }
     }
     
     /**

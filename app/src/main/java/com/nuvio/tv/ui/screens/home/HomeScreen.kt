@@ -28,7 +28,7 @@ import com.nuvio.tv.ui.theme.NuvioColors
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
-    onNavigateToDetail: (String, String) -> Unit
+    onNavigateToDetail: (String, String, String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -73,8 +73,8 @@ fun HomeScreen(
                             catalogRow = catalogRow,
                             rowIndex = index,
                             isRestoreFocus = index == focusedRowIndex,
-                            onItemClick = { id, type ->
-                                onNavigateToDetail(id, type)
+                            onItemClick = { id, type, addonBaseUrl ->
+                                onNavigateToDetail(id, type, addonBaseUrl)
                             },
                             onRowFocused = { rowIndex ->
                                 focusedRowIndex = rowIndex

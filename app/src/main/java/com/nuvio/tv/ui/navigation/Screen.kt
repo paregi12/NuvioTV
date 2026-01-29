@@ -4,8 +4,14 @@ import java.net.URLEncoder
 
 sealed class Screen(val route: String) {
     data object Home : Screen("home")
-    data object Detail : Screen("detail/{itemId}/{itemType}") {
-        fun createRoute(itemId: String, itemType: String) = "detail/$itemId/$itemType"
+    data object Detail : Screen("detail/{itemId}/{itemType}?addonBaseUrl={addonBaseUrl}") {
+        private fun encode(value: String): String =
+            URLEncoder.encode(value, "UTF-8").replace("+", "%20")
+
+        fun createRoute(itemId: String, itemType: String, addonBaseUrl: String? = null): String {
+            val encodedAddonBaseUrl = addonBaseUrl?.let { encode(it) } ?: ""
+            return "detail/$itemId/$itemType?addonBaseUrl=$encodedAddonBaseUrl"
+        }
     }
     data object Stream : Screen("stream/{videoId}/{contentType}/{title}?poster={poster}&backdrop={backdrop}&logo={logo}&season={season}&episode={episode}&episodeName={episodeName}&genres={genres}&year={year}") {
         private fun encode(value: String): String = 

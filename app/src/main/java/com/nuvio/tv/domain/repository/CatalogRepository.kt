@@ -12,6 +12,7 @@ interface CatalogRepository {
         catalogId: String,
         catalogName: String,
         type: String,
-        skip: Int = 0
+        skip: Int = 0,
+        extraArgs: Map<String, String> = emptyMap()
     ): Flow<NetworkResult<CatalogRow>>
 }

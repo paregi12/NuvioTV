@@ -986,20 +986,39 @@ class PluginRuntime @Inject constructor() {
             val listType = object : com.google.gson.reflect.TypeToken<List<Map<String, Any?>>>() {}.type
             val results: List<Map<String, Any?>>? = gson.fromJson(json, listType)
             results?.mapNotNull { item ->
-                val url = item["url"]?.toString() ?: return@mapNotNull null
+                // Handle URL - could be string or object with url property
+                val urlValue = item["url"]
+                val url = when (urlValue) {
+                    is String -> urlValue.takeIf { it.isNotBlank() && !it.contains("[object") }
+                    is Map<*, *> -> (urlValue["url"] as? String)?.takeIf { it.isNotBlank() }
+                    else -> null
+                } ?: return@mapNotNull null
+                
+                // Parse headers if present
+                val headersValue = item["headers"]
+                val headers: Map<String, String>? = when (headersValue) {
+                    is Map<*, *> -> headersValue.entries
+                        .filter { it.key is String && it.value is String }
+                        .associate { (it.key as String) to (it.value as String) }
+                        .takeIf { it.isNotEmpty() }
+                    else -> null
+                }
+                
                 LocalScraperResult(
-                    title = item["title"]?.toString() ?: item["name"]?.toString() ?: "Unknown",
-                    name = item["name"]?.toString(),
+                    title = item["title"]?.toString()?.takeIf { !it.contains("[object") } 
+                        ?: item["name"]?.toString()?.takeIf { !it.contains("[object") } 
+                        ?: "Unknown",
+                    name = item["name"]?.toString()?.takeIf { !it.contains("[object") },
                     url = url,
-                    quality = item["quality"]?.toString(),
-                    size = item["size"]?.toString(),
-                    language = item["language"]?.toString(),
-                    provider = item["provider"]?.toString(),
-                    type = item["type"]?.toString(),
+                    quality = item["quality"]?.toString()?.takeIf { !it.contains("[object") },
+                    size = item["size"]?.toString()?.takeIf { !it.contains("[object") },
+                    language = item["language"]?.toString()?.takeIf { !it.contains("[object") },
+                    provider = item["provider"]?.toString()?.takeIf { !it.contains("[object") },
+                    type = item["type"]?.toString()?.takeIf { !it.contains("[object") },
                     seeders = (item["seeders"] as? Number)?.toInt(),
                     peers = (item["peers"] as? Number)?.toInt(),
-                    infoHash = item["infoHash"]?.toString(),
-                    headers = null
+                    infoHash = item["infoHash"]?.toString()?.takeIf { !it.contains("[object") },
+                    headers = headers
                 )
             }?.filter { it.url.isNotBlank() } ?: emptyList()
         } catch (e: Exception) {

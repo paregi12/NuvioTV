@@ -68,22 +68,31 @@ class StreamScreenViewModel @Inject constructor(
 
             streamRepository.getStreamsFromAllAddons(
                 type = contentType,
-                videoId = videoId
+                videoId = videoId,
+                season = season,
+                episode = episode
             ).collect { result ->
                 when (result) {
                     is NetworkResult.Success -> {
                         val addonStreams = result.data
                         val allStreams = addonStreams.flatMap { it.streams }
                         val availableAddons = addonStreams.map { it.addonName }
+                        
+                        // Apply current filter if one is selected
+                        val currentFilter = _uiState.value.selectedAddonFilter
+                        val filteredStreams = if (currentFilter == null) {
+                            allStreams
+                        } else {
+                            allStreams.filter { it.addonName == currentFilter }
+                        }
 
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
                                 addonStreams = addonStreams,
                                 allStreams = allStreams,
-                                filteredStreams = allStreams,
+                                filteredStreams = filteredStreams,
                                 availableAddons = availableAddons,
-                                selectedAddonFilter = null,
                                 error = null
                             )
                         }

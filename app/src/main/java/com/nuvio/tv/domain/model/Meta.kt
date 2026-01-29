@@ -15,11 +15,18 @@ data class Meta(
     val runtime: String?,
     val director: List<String>,
     val cast: List<String>,
+    val castMembers: List<MetaCastMember> = emptyList(),
     val videos: List<Video>,
     val country: String?,
     val awards: String?,
     val language: String?,
     val links: List<MetaLink>
+)
+
+data class MetaCastMember(
+    val name: String,
+    val character: String? = null,
+    val photo: String? = null
 )
 
 data class Video(

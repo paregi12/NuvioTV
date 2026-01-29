@@ -15,7 +15,14 @@ data class Addon(
 data class CatalogDescriptor(
     val type: ContentType,
     val id: String,
-    val name: String
+    val name: String,
+    val extra: List<CatalogExtra> = emptyList()
+)
+
+data class CatalogExtra(
+    val name: String,
+    val isRequired: Boolean = false,
+    val options: List<String>? = null
 )
 
 data class AddonResource(

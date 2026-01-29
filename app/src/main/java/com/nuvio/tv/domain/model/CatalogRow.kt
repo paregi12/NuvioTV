@@ -3,6 +3,7 @@ package com.nuvio.tv.domain.model
 data class CatalogRow(
     val addonId: String,
     val addonName: String,
+    val addonBaseUrl: String,
     val catalogId: String,
     val catalogName: String,
     val type: ContentType,

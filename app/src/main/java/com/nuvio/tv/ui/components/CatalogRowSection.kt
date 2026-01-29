@@ -38,7 +38,7 @@ fun CatalogRowSection(
     catalogRow: CatalogRow,
     rowIndex: Int,
     isRestoreFocus: Boolean,
-    onItemClick: (String, String) -> Unit,
+    onItemClick: (String, String, String) -> Unit,
     onRowFocused: (Int) -> Unit,
     onLoadMore: () -> Unit,
     modifier: Modifier = Modifier
@@ -113,7 +113,7 @@ fun CatalogRowSection(
             ) { index, item ->
                 ContentCard(
                     item = item,
-                    onClick = { onItemClick(item.id, item.type.toApiString()) },
+                    onClick = { onItemClick(item.id, item.type.toApiString(), catalogRow.addonBaseUrl) },
                     modifier = Modifier
                         .then(
                             if (index < focusRequesters.size) {
