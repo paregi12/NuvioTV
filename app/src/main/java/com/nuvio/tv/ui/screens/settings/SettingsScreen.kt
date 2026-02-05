@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Settings
@@ -49,7 +50,8 @@ fun SettingsScreen(
     onNavigateToPlugins: () -> Unit = {},
     onNavigateToTmdb: () -> Unit = {},
     onNavigateToTheme: () -> Unit = {},
-    onNavigateToLayout: () -> Unit = {}
+    onNavigateToLayout: () -> Unit = {},
+    onNavigateToAddons: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -94,6 +96,15 @@ fun SettingsScreen(
                     title = "Home & Hero Layout",
                     subtitle = "Choose home layout and hero section contents",
                     onClick = onNavigateToLayout
+                )
+            }
+
+            item {
+                SettingsItem(
+                    icon = Icons.Default.Extension,
+                    title = "Addons",
+                    subtitle = "Manage addon sources",
+                    onClick = onNavigateToAddons
                 )
             }
 

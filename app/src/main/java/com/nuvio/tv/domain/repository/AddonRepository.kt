@@ -9,4 +9,5 @@ interface AddonRepository {
     suspend fun fetchAddon(baseUrl: String): NetworkResult<Addon>
     suspend fun addAddon(url: String)
     suspend fun removeAddon(url: String)
+    suspend fun setAddons(urls: List<String>)
 }

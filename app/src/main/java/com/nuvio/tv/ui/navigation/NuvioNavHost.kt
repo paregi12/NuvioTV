@@ -259,7 +259,8 @@ fun NuvioNavHost(
                 onNavigateToPlugins = { navController.navigate(Screen.Plugins.route) },
                 onNavigateToTmdb = { navController.navigate(Screen.TmdbSettings.route) },
                 onNavigateToTheme = { navController.navigate(Screen.ThemeSettings.route) },
-                onNavigateToLayout = { navController.navigate(Screen.LayoutSettings.route) }
+                onNavigateToLayout = { navController.navigate(Screen.LayoutSettings.route) },
+                onNavigateToAddons = { navController.navigate(Screen.AddonManager.route) }
             )
         }
 

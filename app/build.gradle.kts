@@ -103,6 +103,10 @@ dependencies {
     implementation(libs.jsoup)
     implementation(libs.gson)
 
+    // QR code + local server for addon management
+    implementation(libs.nanohttpd)
+    implementation(libs.zxing.core)
+
     // Bundle real crypto-js (JS) for QuickJS plugins
     implementation("org.webjars.npm:crypto-js:4.2.0")
 
