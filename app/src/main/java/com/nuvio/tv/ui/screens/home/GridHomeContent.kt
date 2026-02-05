@@ -176,7 +176,7 @@ fun GridHomeContent(
 
                     is GridItem.Content -> {
                         item(
-                            key = "content_${gridItem.catalogId}_${gridItem.item.id}",
+                            key = "content_${index}_${gridItem.catalogId}_${gridItem.item.id}",
                             span = { TvGridItemSpan(1) }
                         ) {
                             GridContentCard(
