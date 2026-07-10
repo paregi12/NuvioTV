@@ -7,7 +7,7 @@ on:
       - dev
       - main
       - debug-release-workflow
-      - *
+      - '*'
 
 permissions:
   contents: write
