@@ -1,0 +1,87 @@
+name: Debug Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - dev
+      - main
+      - debug-release-workflow
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Generate local.properties
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          TRAKT_CLIENT_ID: ${{ secrets.TRAKT_CLIENT_ID }}
+          TRAKT_CLIENT_SECRET: ${{ secrets.TRAKT_CLIENT_SECRET }}
+          TRAKT_REDIRECT_URI: ${{ secrets.TRAKT_REDIRECT_URI }}
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+          INTRODB_API_URL: ${{ secrets.INTRODB_API_URL }}
+          CONTRIBUTIONS_URL: ${{ secrets.CONTRIBUTIONS_URL }}
+          DONATIONS_BASE_URL: ${{ secrets.DONATIONS_BASE_URL }}
+          DONATIONS_DONATE_URL: ${{ secrets.DONATIONS_DONATE_URL }}
+          DIRECT_DEBRID_API_BASE_URL: ${{ secrets.DIRECT_DEBRID_API_BASE_URL }}
+        run: |
+          cat > local.properties <<EOF
+          SUPABASE_URL=${SUPABASE_URL:-https://dpyhjjcoabcglfmgecug.supabase.co}
+          SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRweWhqamNvYWJjZ2xmbWdlY3VnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3ODYyNDcsImV4cCI6MjA4NjM2MjI0N30.U-3QSNDdpsnvRk_7ZL419AFTOtggHJJcmkodxeXjbkg}
+          TRAKT_CLIENT_ID=${TRAKT_CLIENT_ID:-dummy-key}
+          TRAKT_CLIENT_SECRET=${TRAKT_CLIENT_SECRET:-dummy-key}
+          TRAKT_REDIRECT_URI=${TRAKT_REDIRECT_URI:-nuvio://auth/trakt}
+          TMDB_API_KEY=${TMDB_API_KEY:-dummy-key}
+          INTRODB_API_URL=${INTRODB_API_URL:-https://api.introdb.app}
+          CONTRIBUTIONS_URL=${CONTRIBUTIONS_URL:-}
+          DONATIONS_BASE_URL=${DONATIONS_BASE_URL:-}
+          DONATIONS_DONATE_URL=${DONATIONS_DONATE_URL:-}
+          DIRECT_DEBRID_API_BASE_URL=${DIRECT_DEBRID_API_BASE_URL:-}
+          NUVIO_ANDROID_DISTRIBUTION=full
+          EOF
+
+      - name: Prepare signing config
+        env:
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.NUVIO_RELEASE_KEYSTORE_BASE64 }}
+          RELEASE_KEY_ALIAS: ${{ secrets.NUVIO_RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.NUVIO_RELEASE_KEY_PASSWORD }}
+          RELEASE_STORE_PASSWORD: ${{ secrets.NUVIO_RELEASE_STORE_PASSWORD }}
+        run: |
+          if [ -n "$RELEASE_KEYSTORE_BASE64" ]; then
+            echo "$RELEASE_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/nuviotv.jks"
+            {
+              echo "NUVIO_RELEASE_STORE_FILE=$RUNNER_TEMP/nuviotv.jks"
+              echo "NUVIO_RELEASE_KEY_ALIAS=$RELEASE_KEY_ALIAS"
+              echo "NUVIO_RELEASE_KEY_PASSWORD=$RELEASE_KEY_PASSWORD"
+              echo "NUVIO_RELEASE_STORE_PASSWORD=$RELEASE_STORE_PASSWORD"
+            } >> "$GITHUB_ENV"
+          else
+            echo "CI_USE_DEBUG_SIGNING=true" >> "$GITHUB_ENV"
+          fi
+
+      - name: Build Full Debug APK
+        run: |
+          ./gradlew :app:assembleFullDebug --no-daemon --max-workers=2
+
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: NuvioTV-Full-Debug
+          path: app/build/outputs/apk/full/debug/*.apk
