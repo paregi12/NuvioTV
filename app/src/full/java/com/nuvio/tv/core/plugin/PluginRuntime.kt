@@ -83,41 +83,7 @@ class PluginRuntime @Inject constructor() {
     // Pre-compiled regex for :contains() selector conversion
     private val containsRegex = Regex(""":contains\(["']([^"']+)["']\)""")
 
-    @Volatile
-    private var compiledPolyfillBytecode: ByteArray? = null
 
-    @Volatile
-    private var compiledCallBytecode: ByteArray? = null
-
-    private fun getCompiledPolyfillBytecode(qjs: com.dokar.quickjs.QuickJs): ByteArray {
-        compiledPolyfillBytecode?.let { return it }
-        synchronized(this) {
-            compiledPolyfillBytecode?.let { return it }
-            try {
-                val bytecode = qjs.compile(getStaticPolyfillCode(), "polyfill.js", false)
-                compiledPolyfillBytecode = bytecode
-                return bytecode
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to compile polyfill to bytecode: ${e.message}", e)
-                throw e
-            }
-        }
-    }
-
-    private fun getCompiledCallBytecode(qjs: com.dokar.quickjs.QuickJs): ByteArray {
-        compiledCallBytecode?.let { return it }
-        synchronized(this) {
-            compiledCallBytecode?.let { return it }
-            try {
-                val bytecode = qjs.compile(getStaticCallCode(), "call.js", false)
-                compiledCallBytecode = bytecode
-                return bytecode
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to compile call code to bytecode: ${e.message}", e)
-                throw e
-            }
-        }
-    }
 
     private fun getStaticCallCode(): String {
         return """
@@ -171,8 +137,7 @@ class PluginRuntime @Inject constructor() {
                     null
                 }
 
-                val polyfillBytecode = getCompiledPolyfillBytecode(this)
-                evaluate<Any?>(polyfillBytecode)
+                evaluate<Any?>(getStaticPolyfillCode())
 
                 val wrappedCode = """
                     var module = { exports: {} };
@@ -854,8 +819,7 @@ class PluginRuntime @Inject constructor() {
                     null
                 }
 
-                val polyfillBytecode = getCompiledPolyfillBytecode(this)
-                evaluate<Any?>(polyfillBytecode)
+                evaluate<Any?>(getStaticPolyfillCode())
 
                 // Execute plugin code with module wrapper - wrapped in IIFE to avoid
                 // redeclaration conflicts with polyfill vars (e.g. cheerio, URL, fetch).
@@ -880,8 +844,7 @@ class PluginRuntime @Inject constructor() {
                     )
                 }
 
-                val callBytecode = getCompiledCallBytecode(this)
-                evaluate<Any?>(callBytecode)
+                evaluate<Any?>(getStaticCallCode())
             }
 
             return parseJsonResults(resultJson)
