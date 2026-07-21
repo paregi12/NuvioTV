@@ -103,11 +103,14 @@ import coil3.request.CachePolicy
 import coil3.request.crossfade
 import com.nuvio.tv.R
 import com.nuvio.tv.domain.model.FocusedPosterTrailerPlaybackTarget
+import com.nuvio.tv.domain.model.CardDepthSurface
 import com.nuvio.tv.domain.model.MetaPreview
 import com.nuvio.tv.ui.components.ContinueWatchingCard
+import com.nuvio.tv.ui.components.LocalCardDepthStyle
 import com.nuvio.tv.ui.components.MonochromePosterPlaceholder
 import com.nuvio.tv.ui.components.TrailerPlayer
 import com.nuvio.tv.ui.components.placeholderCardShimmer
+import com.nuvio.tv.ui.components.nuvioCardDepth
 import com.nuvio.tv.ui.components.rememberArtworkBackedCardGlow
 import com.nuvio.tv.ui.components.rememberPlaceholderShimmerOffsetState
 import com.nuvio.tv.LocalSidebarExpanded
@@ -847,7 +850,7 @@ internal fun ModernRowSection(
                     }
                 ) { index, item ->
                     val requester = itemFocusRequesters.getOrPut(index) { FocusRequester() }
-                    val isContinueWatchingRow = row.key == MODERN_CONTINUE_WATCHING_ROW_KEY
+                    val isContinueWatchingRow = row.key == MODERN_CONTINUE_WATCHING_ROW_KEY || row.key == MODERN_UPCOMING_ROW_KEY
                     val onFocused = remember(row.key, index, isContinueWatchingRow) {
                         {
                             onRowItemFocused(row.key, index, isContinueWatchingRow)
@@ -990,6 +993,7 @@ private fun ModernCarouselCard(
     modifier: Modifier = Modifier
 ) {
     val cardShape = remember(cardCornerRadius) { RoundedCornerShape(cardCornerRadius) }
+    val cardDepthStyle = LocalCardDepthStyle.current
     val context = LocalContext.current
     val density = LocalDensity.current
     val expandedCardWidth = if (useLandscapeOverlayTreatment) {
@@ -1235,7 +1239,16 @@ private fun ModernCarouselCard(
             scale = CardDefaults.scale(focusedScale = 1f),
             glow = effectiveCardGlow
         ) {
-            Box(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(cardShape)
+                    .nuvioCardDepth(
+                        shape = cardShape,
+                        surface = CardDepthSurface.POSTERS,
+                        style = cardDepthStyle
+                    )
+            ) {
                 val mediaLayerModifier = remember(hasLandscapeLogo) {
                     if (hasLandscapeLogo) {
                         Modifier
